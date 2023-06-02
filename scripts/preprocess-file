@@ -1,0 +1,8 @@
+#!/bin/sh
+# Preprocess a file and print result to stdout
+
+sed \
+    -e "s|@_pdns_image_name_@|${PDNS_IMAGE_NAME}|g" \
+    -e "s|@_pdns_version_@|${PDNS_VERSION}|g" \
+    -e "s|@_pdns_admin_image_name_@|${PDNS_ADMIN_IMAGE_NAME}|g" \
+    -e "s|@_pdns_admin_version_@|${PDNS_ADMIN_VERSION}|g"

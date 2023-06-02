@@ -1,0 +1,15 @@
+version: "2"
+
+services:
+  pdns:
+    build:
+      context: ./pdns
+      args:
+        VERSION: ${PDNS_VERSION}
+    image: ${PDNS_IMAGE_NAME}:${PDNS_VERSION}
+  pdns-admin:
+    build:
+      context: ./pdns-admin
+      args:
+        VERSION: ${PDNS_ADMIN_VERSION}
+    image: ${PDNS_ADMIN_IMAGE_NAME}:${PDNS_ADMIN_VERSION}
