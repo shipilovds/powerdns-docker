@@ -2,105 +2,105 @@ FROM alpine:3.17 AS builder
 
 ARG VERSION
 
-RUN apk add --no-cache \
-    cargo \
-    curl \
-    gcc \
+ARG BUILD_DEPENDENCIES="build-base \
     libffi-dev \
-    libldap \
+    libpq-dev \
     libxml2-dev \
-    libxslt-dev \
-    musl-dev \
-    npm \
+    mariadb-connector-c-dev \
     openldap-dev \
-    openssl \
-    openssl-dev \
-    postgresql-dev \
-    postgresql-libs \
-    python3 \
     python3-dev \
-    py3-lxml \
-    py3-pip \
-    py3-wheel \
-    py3-certifi \
-    py3-chardet \
-    py3-idna \
-    py3-urllib3 \
-    rust \
-    tzdata \
-    xmlsec \
     xmlsec-dev \
-    yarn
+    npm \
+    yarn \
+    cargo"
 
-RUN addgroup -S -g 2000 pda \
- && adduser -S -u 2000 -D -G pda pda \
- && chown -R pda:pda /opt
+ENV LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8 \
+    FLASK_APP=/build/powerdnsadmin/__init__.py
 
-USER pda
+# Get dependencies
+# py3-pip should not belong to BUILD_DEPENDENCIES. Otherwise, when we remove
+# them with "apk del" at the end of build stage, the python requests module
+# will be removed as well - (Tested with alpine:3.12 and python 3.8.5).
+RUN apk add --no-cache ${BUILD_DEPENDENCIES} && \
+    apk add --no-cache py3-pip curl py3-yaml
 
-RUN mkdir -p /opt/powerdns-admin \
- && curl -sSL https://github.com/ngoduykhanh/PowerDNS-Admin/archive/v$VERSION.tar.gz | tar -xzC /opt/powerdns-admin --strip 1
+WORKDIR /build
 
-RUN sed -i '/mysqlclient.*/d' /opt/powerdns-admin/requirements.txt \
- && PATH=$PATH:~/.local/bin pip3 install --upgrade pip \
- && PATH=$PATH:~/.local/bin pip3 install --no-cache-dir --user -r /opt/powerdns-admin/requirements.txt \
- && PATH=$PATH:~/.local/bin pip3 install --no-cache-dir --user \
+# Add sources
+RUN curl -sSL https://github.com/PowerDNS-Admin/PowerDNS-Admin/archive/refs/tags/v$VERSION.tar.gz | tar -xzC /build --strip 1
+
+# Get application dependencies
+RUN pip install --upgrade pip && \
+    sed -i "s|PyYAML==5.4|PyYAML==6.0.0|g" /build/requirements.txt && \
+    pip install --use-pep517 -r requirements.txt
+RUN pip install \
     envtpl \
     python-dotenv \
     psycopg2-binary 
 
-WORKDIR /opt/powerdns-admin
+# Prepare assets
+RUN yarn install --pure-lockfile --production && \
+    yarn cache clean && \
+    sed -i -r -e "s|'rcssmin',\s?'cssrewrite'|'rcssmin'|g" /build/powerdnsadmin/assets.py && \
+    flask assets build
 
-RUN yarn install --pure-lockfile \
-&& yarn cache clean \
- && sed -i -r -e "s|'cssmin',\s?'cssrewrite'|'cssmin'|g" powerdnsadmin/assets.py \
- && PATH=$PATH:~/.local/bin FLASK_APP=/opt/powerdns-admin/powerdnsadmin/__init__.py flask assets build \
- && find powerdnsadmin/static/node_modules -name 'fonts' -exec cp -r {} powerdnsadmin/static ";" \
- && find powerdnsadmin/static/node_modules/icheck/skins/square -name '*.png' -exec cp {} powerdnsadmin/static/generated ";" \
- && rm -rf powerdnsadmin/custom \
- && rm -rf powerdnsadmin/node_modules \
- && rm -rf powerdnsadmin/static/node_modules
+RUN mv /build/powerdnsadmin/static /tmp/static && \
+    mkdir /build/powerdnsadmin/static && \
+    cp -r /tmp/static/generated /build/powerdnsadmin/static && \
+    cp -r /tmp/static/assets /build/powerdnsadmin/static && \
+    cp -r /tmp/static/img /build/powerdnsadmin/static && \
+    find /tmp/static/node_modules -name 'webfonts' -exec cp -r {} /build/powerdnsadmin/static \; && \
+    find /tmp/static/node_modules -name 'fonts' -exec cp -r {} /build/powerdnsadmin/static \; && \
+    find /tmp/static/node_modules/icheck/skins/square -name '*.png' -exec cp {} /build/powerdnsadmin/static/generated \;
 
-COPY assets.py powerdnsadmin/
+RUN { \
+      echo "from flask_assets import Environment"; \
+      echo "assets = Environment()"; \
+      echo "assets.register('js_login', 'generated/login.js')"; \
+      echo "assets.register('js_validation', 'generated/validation.js')"; \
+      echo "assets.register('css_login', 'generated/login.css')"; \
+      echo "assets.register('js_main', 'generated/main.js')"; \
+      echo "assets.register('css_main', 'generated/main.css')"; \
+    } > /build/powerdnsadmin/assets.py
 
-RUN pip uninstall cssmin jsmin pytest -y
+# Move application
+RUN mkdir -p /app && \
+    cp -r /build/migrations/ /build/powerdnsadmin/ /build/run.py /app 
+    #&& \
+    #mkdir -p /app/configs 
+    #&& \
+    #cp -r /build/configs/docker_config.py /app/configs
 
-
+# Build image
 FROM alpine:3.17
-LABEL org.opencontainers.image.source=https://github.com/shipilovds/powerdns-docker
 
-ENV FLASK_APP=/opt/powerdns-admin/powerdnsadmin/__init__.py \
-    PATH=$PATH:/opt/.local/bin \
-    PYTHONPATH=/opt/.local/lib/python3.8/site-packages:/usr/lib/python3.8/site-packages
+ENV FLASK_APP=/app/powerdnsadmin/__init__.py \
+    USER=pda
 
-COPY --from=builder /opt/powerdns-admin /opt/powerdns-admin
-COPY --from=builder /home/pda/.local /opt/.local
+RUN apk add --no-cache mariadb-connector-c postgresql-client py3-gunicorn py3-pyldap py3-flask py3-psycopg2 xmlsec tzdata libcap && \
+    addgroup -S ${USER} && \
+    adduser -S -D -G ${USER} ${USER} && \
+    mkdir /data && \
+    chown ${USER}:${USER} /data && \
+    setcap cap_net_bind_service=+ep $(readlink -f /usr/bin/python3) && \
+    apk del libcap
 
-RUN apk add --no-cache \
-    curl \
-    libldap \
-    libressl \
-    postgresql-client \
-    postgresql-libs \
-    python3 \
-    py3-certifi \
-    py3-chardet \
-    py3-idna \
-    py3-lxml \
-    py3-urllib3 \
-    tzdata \
-    xmlsec
+COPY --from=builder /usr/bin/flask /usr/bin/
+COPY --from=builder /usr/bin/envtpl /usr/bin/
+COPY --from=builder /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages/
+COPY --from=builder --chown=root:${USER} /app /app/
+COPY ./entrypoint.sh /usr/bin/
+COPY config.py.tpl /app/
 
-RUN addgroup -S -g 2000 pda \
- && adduser -S -u 2000 -D -G pda pda \
- && chown -R pda:pda /opt
+WORKDIR /app
+RUN chown -R ${USER}:${USER} /app 
+    #&& \
+    #cat ./powerdnsadmin/default_config.py ./configs/docker_config.py > ./powerdnsadmin/docker_config.py
 
-USER pda
-
-WORKDIR /opt/powerdns-admin
-
-COPY config.py.tpl .
-
-COPY entrypoint.sh /docker-entrypoint.sh
-
-ENTRYPOINT [ "/docker-entrypoint.sh" ]
+EXPOSE 9393/tcp
+USER ${USER}
+HEALTHCHECK CMD ["wget","--output-document=-","--quiet","--tries=1","http://127.0.0.1:9393/"]
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["gunicorn","powerdnsadmin:create_app()"]

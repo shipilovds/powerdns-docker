@@ -31,19 +31,29 @@ PDNS_ADMIN_SECRET_KEY="$(cat .secret-key)"
 
 export PDNS_ADMIN_HSTS_ENABLED PDNS_ADMIN_PORT PDNS_ADMIN_BIND_ADDRESS PDNS_ADMIN_LOGIN_TITLE PDNS_ADMIN_SAML_ENABLED PDNS_ADMIN_SECRET_KEY
 
+## CAPTCHA CONFIG
+: "${PDNS_ADMIN_CAPTCHA_ENABLE:=False}"
+
+export PDNS_ADMIN_CAPTCHA_ENABLE
+
+# Prevent from failing
+: "${PDNS_ADMIN_SESSION_TYPE:=sqlalchemy}"
+
+export PDNS_ADMIN_SESSION_TYPE
+
 ## LOG CONFIG
 : "${PDNS_ADMIN_LOG_FILE:=/dev/stdout}"
 : "${PDNS_ADMIN_LOG_LEVEL:=WARN}"
 
 export PDNS_ADMIN_LOG_FILE PDNS_ADMIN_LOG_LEVEL
 
-envtpl < config.py.tpl > /opt/powerdns-admin/powerdnsadmin/default_config.py
+envtpl < config.py.tpl > /app/powerdnsadmin/default_config.py
 
 PSQL_COMMAND="psql -h ${PDNS_ADMIN_SQLA_DB_HOST} -p ${PDNS_ADMIN_SQLA_DB_PORT} -d ${PDNS_ADMIN_SQLA_DB_NAME} -U ${PDNS_ADMIN_SQLA_DB_USER}"
 
 # Wait for us to be able to connect to PostgreSQL before proceeding
 echo "===> Waiting for '$PDNS_ADMIN_SQLA_DB_HOST' PostgreSQL service"
-until pg_isready -h ${PDNS_ADMIN_SQLA_DB_HOST}; do
+until pg_isready -h ${PDNS_ADMIN_SQLA_DB_HOST} -U ${PDNS_ADMIN_SQLA_DB_USER}; do
   echo "PostgreSQL is unavailable - sleeping"
   sleep 5
 done

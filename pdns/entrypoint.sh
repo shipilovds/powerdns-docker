@@ -28,14 +28,14 @@ PSQL_COMMAND="psql -h ${PDNS_GPGSQL_HOST} -p ${PDNS_GPGSQL_PORT} -d ${PDNS_GPGSQ
 
 # Wait for us to be able to connect to PostgreSQL before proceeding
 echo "===> Waiting for $PDNS_GPGSQL_HOST PostgreSQL service"
-until pg_isready -h ${PDNS_GPGSQL_HOST}; do
+until pg_isready -h ${PDNS_GPGSQL_HOST} -U ${PDNS_GPGSQL_USER}; do
   echo "PostgreSQL is unavailable - sleeping"
   sleep 5
 done
 
-PSQL_CHECK_SCHEMA_STRING="${PSQL_COMMAND} -t -c \"SELECT COUNT(DISTINCT table_name) FROM information_schema.columns WHERE table_schema = '${PDNS_GPGSQL_DBNAME}';\""
+PSQL_CHECK_SCHEMA_STRING="${PSQL_COMMAND} -t -c \"SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name='domains');\" | sed '1q;d'"
 PSQL_NUM_TABLE=$(eval $PSQL_CHECK_SCHEMA_STRING)
-if [ "$PSQL_NUM_TABLE" -eq 0 ]; then
+if [ "$PSQL_NUM_TABLE" != " t" ]; then
   echo "WARNING: PostgreSQL DB schema is absent!"
   $PSQL_COMMAND -a -f /usr/share/doc/pdns/schema.pgsql.sql
   echo "NOTE: PostgreSQL DB schema was initiated for the first time"

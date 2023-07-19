@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM alpine:3.18
 LABEL org.opencontainers.image.source=https://github.com/shipilovds/powerdns-docker
 
 ARG VERSION
@@ -40,10 +40,10 @@ ENV PDNS_guardian=yes \
     PDNS_launch=gpgsql
 
 COPY pdns.conf.tpl /
-COPY entrypoint.sh /docker-entrypoint.sh
+COPY entrypoint.sh /usr/bin/entrypoint.sh
+COPY Dockerfile /
 
 EXPOSE 53 53/udp
-
-ENTRYPOINT [ "/docker-entrypoint.sh" ]
-
+ENTRYPOINT [ "entrypoint.sh" ]
 CMD [ "/usr/sbin/pdns_server", "--write-pid=no", "--disable-syslog=yes" ]
+HEALTHCHECK CMD ["pdns_control", "rping"]

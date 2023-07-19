@@ -1,4 +1,5 @@
 /* just an example */
+
 CREATE USER pdns WITH PASSWORD 'powerdns';
 CREATE DATABASE powerdns WITH OWNER=pdns ENCODING='UTF8';
 CREATE DATABASE powerdnsadmin WITH OWNER=pdns ENCODING='UTF8';

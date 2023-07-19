@@ -5,7 +5,7 @@
 REGISTRY_USER ?= shipilovds
 REGISTRY_PASSWORD ?= CHANGE_ME
 REGISTRY_ADDR ?= ghcr.io/$(REGISTRY_USER)
-PDNS_VERSION ?= 4.5.2
+PDNS_VERSION ?= 4.8.1
 PDNS_ADMIN_VERSION ?= 0.4.1
 PDNS_IMAGE_NAME ?= $(REGISTRY_ADDR)/pdns
 PDNS_ADMIN_IMAGE_NAME ?= $(REGISTRY_ADDR)/pdns-admin
@@ -15,7 +15,7 @@ all: push
 login:
 	@echo $(REGISTRY_PASSWORD) | docker login -u $(REGISTRY_USER) --password-stdin $(REGISTRY_ADDR)
 
-build: login
+build: #login
 	docker-compose -f build-images.yml build --force-rm --parallel --pull
 
 retag: build
@@ -30,6 +30,8 @@ push: retag
 
 cleanup:
 	docker logout $(REGISTRY_ADDR)
+
+test-run.yml:
 
 %: %.in
 	scripts/preprocess-file < $< > $@
