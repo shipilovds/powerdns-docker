@@ -6,10 +6,12 @@ services:
       context: ./pdns
       args:
         VERSION: ${PDNS_VERSION}
-    image: ${PDNS_IMAGE_NAME}:${PDNS_VERSION}
+        REVISION: ${PDNS_REVISION}
+    image: ${PDNS_IMAGE_NAME}:${PDNS_VERSION}-${PDNS_REVISION}
   pdns-admin:
     build:
       context: ./pdns-admin
       args:
         VERSION: ${PDNS_ADMIN_VERSION}
-    image: ${PDNS_ADMIN_IMAGE_NAME}:${PDNS_ADMIN_VERSION}
+        REVISION: ${PDNS_ADMIN_REVISION}
+    image: ${PDNS_ADMIN_IMAGE_NAME}:${PDNS_ADMIN_VERSION}-${PDNS_ADMIN_REVISION}

@@ -1,0 +1,53 @@
+image:
+  pullPolicy: IfNotPresent
+  repository: ghcr.io/shipilovds/pdns-admin
+  tag: 0.4.1-2
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - host: ns01-ui.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          servicePort: 80
+  tls:
+    - secretName: ns01-ui-example-com
+      hosts:
+        - ns01-ui.example.com
+
+envs: {}
+
+ports:
+  - name: wui
+    containerPort: 8000
+    protocol: TCP
+
+probes:
+  readinessProbe:
+    httpGet:
+      path: /login
+      port: wui
+  livenessProbe:
+    httpGet:
+      path: /login
+      port: wui
+
+service:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+      name: wui
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1000Mi
+  requests:
+    cpu: 500m
+    memory: 500Mi

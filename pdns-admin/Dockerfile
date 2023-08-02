@@ -68,16 +68,17 @@ RUN { \
 # Move application
 RUN mkdir -p /app && \
     cp -r /build/migrations/ /build/powerdnsadmin/ /build/run.py /app 
-    #&& \
-    #mkdir -p /app/configs 
-    #&& \
-    #cp -r /build/configs/docker_config.py /app/configs
 
 # Build image
 FROM alpine:3.17
+LABEL org.opencontainers.image.source=https://github.com/shipilovds/powerdns-docker
+LABEL org.opencontainers.image.description='Powerfull and dynamic image for PowerDNS-Admin'
+LABEL org.opencontainers.image.authors='@shipilovds (shipilovds@gmail.com)'
+LABEL org.opencontainers.image.url=https://github.com/shipilovds/powerdns-docker
+LABEL org.opencontainers.image.documentation=https://github.com/shipilovds/powerdns-docker/blob/main/README.md
 
 ENV FLASK_APP=/app/powerdnsadmin/__init__.py \
-    USER=pda
+    USER=pdns
 
 RUN apk add --no-cache mariadb-connector-c postgresql-client py3-gunicorn py3-pyldap py3-flask py3-psycopg2 xmlsec tzdata libcap && \
     addgroup -S ${USER} && \
@@ -91,16 +92,21 @@ COPY --from=builder /usr/bin/flask /usr/bin/
 COPY --from=builder /usr/bin/envtpl /usr/bin/
 COPY --from=builder /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages/
 COPY --from=builder --chown=root:${USER} /app /app/
-COPY ./entrypoint.sh /usr/bin/
+COPY entrypoint.sh /usr/bin/entrypoint.sh
 COPY config.py.tpl /app/
+COPY Dockerfile /
+copy healthcheck /healthcheck
 
 WORKDIR /app
 RUN chown -R ${USER}:${USER} /app 
-    #&& \
-    #cat ./powerdnsadmin/default_config.py ./configs/docker_config.py > ./powerdnsadmin/docker_config.py
 
-EXPOSE 9393/tcp
+ENV PDNS_ADMIN_PORT=8000
+EXPOSE ${PDNS_ADMIN_PORT}/tcp
 USER ${USER}
-HEALTHCHECK CMD ["wget","--output-document=-","--quiet","--tries=1","http://127.0.0.1:9393/"]
+HEALTHCHECK CMD ["/healthcheck"]
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["gunicorn","powerdnsadmin:create_app()"]
+ARG VERSION
+ARG REVISION
+LABEL org.opencontainers.image.version=$VERSION
+LABEL org.opencontainers.image.revision=$REVISION

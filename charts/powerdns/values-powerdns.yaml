@@ -1,0 +1,67 @@
+image:
+  pullPolicy: IfNotPresent
+  repository: ghcr.io/shipilovds/pdns
+  tag: 4.8.1-2
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - host: ns01-api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          servicePort: 80
+  tls:
+    - secretName: ns01-api-example-com
+      hosts:
+        - ns01-api.example.com
+
+envs: {}
+
+ports:
+  - name: dns-udp
+    containerPort: 5053
+    protocol: UDP
+  - name: dns-tcp
+    containerPort: 5053
+    protocol: TCP
+  - name: api
+    containerPort: 8081
+    protocol: TCP
+
+probes:
+  readinessProbe:
+    httpGet:
+      path: /
+      port: api
+  livenessProbe:
+    httpGet:
+      path: /
+      port: api
+
+service_53:
+  type: LoadBalancer
+  ports:
+    - port: 53
+      targetPort: 5053
+      protocol: TCP
+      name: dns-tcp
+    - port: 53
+      targetPort: 5053
+      protocol: UDP
+      name: dns-udp
+
+service:
+  type: ClusterIP
+  annotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/path: '/metrics'
+    prometheus.io/port: '8081'
+  ports:
+    - port: 80
+      targetPort: 8081
+      protocol: TCP
+      name: api
