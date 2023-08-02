@@ -15,7 +15,7 @@ all: push
 login:
 	@echo $(REGISTRY_PASSWORD) | docker login -u $(REGISTRY_USER) --password-stdin $(REGISTRY_ADDR)
 
-build: #login
+build: login
 	docker-compose -f build-images.yml build --force-rm --parallel --pull
 
 retag: build
