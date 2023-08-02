@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -euo pipefail
 
@@ -52,7 +52,7 @@ envtpl < config.py.tpl > /app/powerdnsadmin/default_config.py
 PSQL_COMMAND="psql -h ${PDNS_ADMIN_SQLA_DB_HOST} -p ${PDNS_ADMIN_SQLA_DB_PORT} -d ${PDNS_ADMIN_SQLA_DB_NAME} -U ${PDNS_ADMIN_SQLA_DB_USER}"
 
 # Wait for us to be able to connect to PostgreSQL before proceeding
-echo "===> Waiting for '$PDNS_ADMIN_SQLA_DB_HOST' PostgreSQL service"
+echo "===> Waiting for '$PDNS_ADMIN_SQLA_DB_HOST' PostgreSQL service..."
 until pg_isready -h ${PDNS_ADMIN_SQLA_DB_HOST} -U ${PDNS_ADMIN_SQLA_DB_USER}; do
   echo "PostgreSQL is unavailable - sleeping"
   sleep 5
@@ -72,6 +72,20 @@ $PSQL_COMMAND -c "INSERT INTO setting (name, value) SELECT * FROM (SELECT 'pdns_
 $PSQL_COMMAND -c "UPDATE setting SET value='${PDNS_ADMIN_PDNS_STATS_URL}' WHERE name='pdns_api_url';"
 $PSQL_COMMAND -c "UPDATE setting SET value='${PDNS_ADMIN_PDNS_API_KEY}' WHERE name='pdns_api_key';"
 $PSQL_COMMAND -c "UPDATE setting SET value='${PDNS_ADMIN_PDNS_VERSION}' WHERE name='pdns_version';"
+
+
+echo "===> Waiting while PowerDNS API become available..."
+count=1
+until wget -q ${PDNS_ADMIN_PDNS_STATS_URL}
+do
+  ((count++))
+  if [ $count -eq 6 ]; then
+    echo "Stop trying to reach PowerDNS API. Exiting."
+    exit 1
+  fi
+  echo "PowerDNS API is unavailable - sleeping"
+  sleep 5
+done
 
 # start web server with powerdns-admin app
 gunicorn -t 120 --workers 4 --bind "0.0.0.0:${PDNS_ADMIN_PORT}" --log-level info 'powerdnsadmin:create_app()'

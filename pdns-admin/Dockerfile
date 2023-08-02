@@ -91,13 +91,12 @@ COPY --from=builder /usr/bin/flask /usr/bin/
 COPY --from=builder /usr/bin/envtpl /usr/bin/
 COPY --from=builder /usr/lib/python3.10/site-packages /usr/lib/python3.10/site-packages/
 COPY --from=builder --chown=root:${USER} /app /app/
-COPY ./entrypoint.sh /usr/bin/
+COPY entrypoint.sh /usr/bin/entrypoint.sh
 COPY config.py.tpl /app/
+COPY Dockerfile /
 
 WORKDIR /app
 RUN chown -R ${USER}:${USER} /app 
-    #&& \
-    #cat ./powerdnsadmin/default_config.py ./configs/docker_config.py > ./powerdnsadmin/docker_config.py
 
 EXPOSE 9393/tcp
 USER ${USER}
