@@ -34,6 +34,9 @@ RUN pip3 install --no-cache-dir envtpl
 
 RUN addgroup -S -g 2000 pdns && adduser -S -u 2000 -D -G pdns pdns
 
+RUN touch /etc/pdns.conf && chown pdns /etc/pdns.conf && chmod 700 /etc/pdns.conf
+RUN mkdir /var/run/pdns/ && chown pdns /var/run/pdns && chmod 700 /var/run/pdns
+
 ENV PDNS_guardian=yes \
     PDNS_setuid=pdns \
     PDNS_setgid=pdns \
@@ -43,7 +46,8 @@ COPY pdns.conf.tpl /
 COPY entrypoint.sh /usr/bin/entrypoint.sh
 COPY Dockerfile /
 
-EXPOSE 53 53/udp
+USER pdns
+EXPOSE 5053 5053/udp
 ENTRYPOINT [ "entrypoint.sh" ]
-CMD [ "/usr/sbin/pdns_server", "--write-pid=no", "--disable-syslog=yes" ]
+CMD [ "/usr/sbin/pdns_server", "--write-pid=no", "--disable-syslog=yes", "--local-port=5053" ]
 HEALTHCHECK CMD ["pdns_control", "rping"]

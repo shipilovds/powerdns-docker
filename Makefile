@@ -16,7 +16,7 @@ login:
 	@echo $(REGISTRY_PASSWORD) | docker login -u $(REGISTRY_USER) --password-stdin $(REGISTRY_ADDR)
 
 build: #login
-	docker-compose -f build-images.yml build --force-rm --parallel --pull
+	docker compose -f build-images.yml build --force-rm --parallel --pull
 
 retag: build
 	docker tag $(PDNS_IMAGE_NAME):$(PDNS_VERSION) $(PDNS_IMAGE_NAME):latest
