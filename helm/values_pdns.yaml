@@ -1,0 +1,77 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/shipilovds/pdns
+  pullPolicy: IfNotPresent
+  tag: 4.8.1
+
+nameOverride: "powerdns"
+fullnameOverride: ""
+
+envs: {}
+
+ports:
+  - name: dns-udp
+    containerPort: 5053
+    protocol: UDP
+  - name: dns-tcp
+    containerPort: 5053
+    protocol: TCP
+  - name: api
+    containerPort: 8081
+    protocol: TCP
+
+probes:
+  readinessProbe:
+    httpGet:
+      path: /
+      port: api
+  livenessProbe:
+    httpGet:
+      path: /
+      port: api
+
+service:
+  type: ClusterIP
+  ports:
+    - port: 53
+      targetPort: 5053
+      protocol: TCP
+      name: dns-tcp
+    - port: 53
+      targetPort: 5053
+      protocol: UDP
+      name: dns-udp
+    - port: 80
+      targetPort: 8081
+      protocol: TCP
+      name: api
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: ns01-api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: ns01-api-example-com
+      hosts:
+        - ns01-api.example.com
+
+resources:
+  limits:
+    cpu: 300m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
