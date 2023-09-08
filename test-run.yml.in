@@ -13,7 +13,7 @@ services:
     networks:
       - pdns-test
   pdns:
-    image: @_pdns_image_name_@:@_pdns_version_@
+    image: @_pdns_image_name_@:@_pdns_version_@-@_pdns_revision_@
     container_name: pdns
     depends_on:
       - postgres
@@ -24,15 +24,15 @@ services:
     networks:
       - pdns-test
   pdns-admin:
-    image: @_pdns_admin_image_name_@:@_pdns_admin_version_@
+    image: @_pdns_admin_image_name_@:@_pdns_admin_version_@-@_pdns_admin_revision_@
     container_name: pdns_admin
     depends_on:
       - pdns
       - postgres
     ports:
       - '9393:9393'
-    volumes:
-      - "./pdns-admin-upload:/opt/powerdns-admin/powerdns/upload"
+    #volumes:
+    #  - "./pdns-admin-upload:/opt/powerdns-admin/powerdns/upload"
     networks:
       - pdns-test
 

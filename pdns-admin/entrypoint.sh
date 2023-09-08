@@ -15,7 +15,7 @@ export PGPASSWORD=${PDNS_ADMIN_SQLA_DB_PASSWORD}
 # POWERDNS CONFIG
 : "${PDNS_ADMIN_PDNS_STATS_URL:=http://pdns:8081}"
 : "${PDNS_ADMIN_PDNS_API_KEY:=secret}"
-: "${PDNS_ADMIN_PDNS_VERSION:=4.4.1}"
+: "${PDNS_ADMIN_PDNS_VERSION:=4.8.1}"
 
 export PDNS_ADMIN_PDNS_STATS_URL PDNS_ADMIN_PDNS_API_KEY PDNS_ADMIN_PDNS_VERSION
 
@@ -88,4 +88,4 @@ do
 done
 
 # start web server with powerdns-admin app
-gunicorn -t 120 --workers 4 --bind "0.0.0.0:${PDNS_ADMIN_PORT}" --log-level info 'powerdnsadmin:create_app()'
+gunicorn -t 120 --workers 4 --bind "${PDNS_ADMIN_BIND_ADDRESS}:${PDNS_ADMIN_PORT}" --log-level info 'powerdnsadmin:create_app()'

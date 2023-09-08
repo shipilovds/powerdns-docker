@@ -68,13 +68,16 @@ RUN { \
 # Move application
 RUN mkdir -p /app && \
     cp -r /build/migrations/ /build/powerdnsadmin/ /build/run.py /app 
-    #&& \
-    #mkdir -p /app/configs 
-    #&& \
-    #cp -r /build/configs/docker_config.py /app/configs
 
 # Build image
 FROM alpine:3.17
+ARG VERSION
+ARG REVISION
+LABEL org.opencontainers.image.source=https://github.com/shipilovds/powerdns-docker
+LABEL org.opencontainers.image.description='Powerfull and dynamic image for PowerDNS-Admin'
+LABEL org.opencontainers.image.authors='#d.shipilov (shipilovds@gmail.com)'
+LABEL org.opencontainers.image.url=https://github.com/shipilovds/powerdns-docker
+LABEL org.opencontainers.image.documentation=https://github.com/shipilovds/powerdns-docker/blob/main/README.md
 
 ENV FLASK_APP=/app/powerdnsadmin/__init__.py \
     USER=pdns
@@ -103,3 +106,5 @@ USER ${USER}
 HEALTHCHECK CMD ["wget","--output-document=-","--quiet","--tries=1","http://127.0.0.1:9393/"]
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["gunicorn","powerdnsadmin:create_app()"]
+LABEL org.opencontainers.image.version=$VERSION
+LABEL org.opencontainers.image.revision=$REVISION

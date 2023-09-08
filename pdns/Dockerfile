@@ -1,7 +1,13 @@
 FROM alpine:3.18
-LABEL org.opencontainers.image.source=https://github.com/shipilovds/powerdns-docker
 
 ARG VERSION
+ARG REVISION
+LABEL org.opencontainers.image.source=https://github.com/shipilovds/powerdns-docker
+LABEL org.opencontainers.image.description='Powerfull and dynamic image for PowerDNS Authoritative Server'
+LABEL org.opencontainers.image.authors='#d.shipilov (shipilovds@gmail.com)'
+LABEL org.opencontainers.image.url=https://github.com/shipilovds/powerdns-docker
+LABEL org.opencontainers.image.documentation=https://github.com/shipilovds/powerdns-docker/blob/main/README.md
+
 
 RUN set -ex \
     && apk --no-cache add \
@@ -51,3 +57,5 @@ EXPOSE 5053 5053/udp
 ENTRYPOINT [ "entrypoint.sh" ]
 CMD [ "/usr/sbin/pdns_server", "--write-pid=no", "--disable-syslog=yes", "--local-port=5053" ]
 HEALTHCHECK CMD ["pdns_control", "rping"]
+LABEL org.opencontainers.image.version=$VERSION
+LABEL org.opencontainers.image.revision=$REVISION
