@@ -28,7 +28,7 @@ PSQL_COMMAND="psql -h ${PDNS_GPGSQL_HOST} -p ${PDNS_GPGSQL_PORT} -d ${PDNS_GPGSQ
 
 # Wait for us to be able to connect to PostgreSQL before proceeding
 echo "===> Waiting for $PDNS_GPGSQL_HOST PostgreSQL service"
-until pg_isready -h ${PDNS_GPGSQL_HOST} -U ${PDNS_GPGSQL_USER} -d ${PDNS_GPGSQL_DBNAME}; do
+until pg_isready -h ${PDNS_GPGSQL_HOST} -p ${PDNS_GPGSQL_PORT} -U ${PDNS_GPGSQL_USER} -d ${PDNS_GPGSQL_DBNAME}; do
   echo "PostgreSQL is unavailable - sleeping"
   sleep 5
 done

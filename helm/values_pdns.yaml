@@ -3,9 +3,9 @@ replicaCount: 1
 image:
   repository: ghcr.io/shipilovds/pdns
   pullPolicy: IfNotPresent
-  tag: 4.8.1
+  tag: 4.8.1-2
 
-nameOverride: "powerdns"
+nameOverride: ""
 fullnameOverride: ""
 
 envs: {}
@@ -33,6 +33,8 @@ probes:
 
 service:
   type: ClusterIP
+  annotations:
+    prometheus.io/scrape: 'true'
   ports:
     - port: 53
       targetPort: 5053
@@ -50,8 +52,6 @@ service:
 ingress:
   enabled: true
   className: nginx
-  annotations:
-    kubernetes.io/ingress.class: nginx
   hosts:
     - host: ns01-api.example.com
       paths:

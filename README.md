@@ -1,14 +1,16 @@
 # PowerDNS & PowerDNS-Admin docker images
 
-## Requirements
-
-Install on your system `make`, `docker` and `docker-compose`. Just it.
-
 ## Build and push docker
 
 Manual usage: run `make REGISTRY_PASSWORD=yourpassword` 
 
 You can try to rewrite other variables.
+
+### Requirements
+
+- make
+- docker
+- docker compose plugin
 
 ### Makefile Variables
 
@@ -79,9 +81,9 @@ Look at default variables and you will understand
 ```
 PDNS_ADMIN_PDNS_STATS_URL=http://pdns:8081 - powerdns api url to check connection
 PDNS_ADMIN_PDNS_API_KEY=secret             - pdns api secret
-PDNS_ADMIN_PDNS_VERSION=4.8.1              - version. dunno y ¯\_(ツ)_/¯
+PDNS_ADMIN_PDNS_VERSION=0.4.1              - version. dunno y ¯\_(ツ)_/¯
 PDNS_ADMIN_HSTS_ENABLED=False              - HTTP Strict Transport Security enabled (True/False)
-PDNS_ADMIN_PORT=9393                       - unicorn port
+PDNS_ADMIN_PORT=8000                       - unicorn port
 PDNS_ADMIN_BIND_ADDRESS=0.0.0.0            - unicorn bind address
 PDNS_ADMIN_LOGIN_TITLE=PDNS                - UI title text
 PDNS_ADMIN_SAML_ENABLED=False              - SAML Authnetication

@@ -30,7 +30,7 @@ services:
       - pdns
       - postgres
     ports:
-      - '9393:9393'
+      - '8000:8000'
     #volumes:
     #  - "./pdns-admin-upload:/opt/powerdns-admin/powerdns/upload"
     networks:

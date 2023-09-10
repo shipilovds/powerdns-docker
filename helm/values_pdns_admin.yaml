@@ -1,28 +1,37 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/shipilovds/pdns
   pullPolicy: IfNotPresent
-  tag: 4.8.1
+  repository: ghcr.io/shipilovds/pdns-admin
+  tag: 0.4.1
 
-imagePullSecrets: []
-nameOverride: ""
+nameOverride: "powerdns-admin"
 fullnameOverride: ""
 
-serviceAccount:
-  create: true
-  annotations: {}
-  name: ""
+envs: {}
 
-podAnnotations: {}
+ports:
+  - name: wui
+    containerPort: 8000
+    protocol: TCP
 
-podSecurityContext: {}
-
-securityContext: {}
+probes:
+  readinessProbe:
+    httpGet:
+      path: /
+      port: wui
+  livenessProbe:
+    httpGet:
+      path: /
+      port: wui
 
 service:
   type: ClusterIP
-  port: 80
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+      name: wui
 
 ingress:
   enabled: true
@@ -30,14 +39,14 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: nginx
   hosts:
-    - host: ns01-api.example.com
+    - host: ns01.example.com
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: ns01-api-example-com
+    - secretName: ns01-example-com
       hosts:
-        - ns01-api.example.com
+        - ns01.example.com
 
 resources:
   limits:
@@ -46,13 +55,6 @@ resources:
   requests:
     cpu: 100m
     memory: 128Mi
-
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 nodeSelector: {}
 

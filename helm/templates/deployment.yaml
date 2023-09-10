@@ -11,6 +11,10 @@ spec:
       {{- include "powerdns.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- with .Values.service.annotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
         {{- include "powerdns.selectorLabels" . | nindent 8 }}
     spec:
@@ -27,6 +31,11 @@ spec:
             {{- toYaml .Values.probes.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          {{- if gt (len .Values.envs) 0 -}}
+          envFrom:
+            - configMapRef:
+                name: {{ include "powerdns.fullname" . }}
+          {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
