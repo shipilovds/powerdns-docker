@@ -15,13 +15,15 @@ You can try to rewrite other variables.
 ### Makefile Variables
 
 ```
-REGISTRY_USER - docker registry user name
-REGISTRY_PASSWORD - docker registry user password
-REGISTRY_ADDR - docker registry server name (:server_port)
-PDNS_VERSION - version of PowerDNS release to build
-PDNS_ADMIN_VERSION - version of PowerDNS-Admin release to build
-PDNS_IMAGE_NAME - PowerDNS docker image name
-PDNS_ADMIN_IMAGE_NAME -  PowerDNS-Admin docker image name
+REGISTRY_USER         - docker registry user name
+REGISTRY_PASSWORD     - docker registry user password
+REGISTRY_ADDR         - docker registry server name (:server_port)
+PDNS_VERSION          - version of PowerDNS release to build
+PDNS_ADMIN_VERSION    - version of PowerDNS-Admin release to build
+PDNS_IMAGE_NAME       - PowerDNS docker image name
+PDNS_ADMIN_IMAGE_NAME - PowerDNS-Admin docker image name
+PDNS_REVISION         - PowerDNS image revision
+PDNS_ADMIN_REVISION   - PowerDNS-Admin image revision
 ```
 
 ## Test run
@@ -96,4 +98,13 @@ PDNS_ADMIN_SQLA_DB_PORT=5432
 PDNS_ADMIN_SQLA_DB_USER=pdns
 PDNS_ADMIN_SQLA_DB_PASSWORD=powerdns
 PDNS_ADMIN_SQLA_DB_NAME=powerdnsadmin
+PDNS_ADMIN_SQLA_DB_URI_PARAMETER_LIST='sslmode=allow'
 ```
+
+> `PDNS_ADMIN_SQLA_DB_URI_PARAMETER_LIST` is used to construct psql uri options for sqlalchemy
+>
+> connectios string template: `SQLALCHEMY_DATABASE_URI = f"postgresql://{SQLA_DB_USER}:{SQLA_DB_PASSWORD}@{SQLA_DB_HOST}:{SQLA_DB_PORT}/{SQLA_DB_NAME}"`
+>
+> String `f"?{PDNS_ADMIN_SQLA_DB_URI_PARAMETER_LIST}"` will be appended to `SQLALCHEMY_DATABASE_URI` when `PDNS_ADMIN_SQLA_DB_URI_PARAMETER_LIST != ''`
+>
+> You can read more about parameters [here](https://www.prisma.io/dataguide/postgresql/short-guides/connection-uris#specifying-additional-parameters)

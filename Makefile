@@ -15,6 +15,7 @@ PDNS_ADMIN_IMAGE_NAME ?= $(REGISTRY_ADDR)/pdns-admin
 all: push
 
 login:
+	@if [[ $(REGISTRY_PASSWORD) == 'CHANGE_ME' ]]; then echo "Change REGISTRY_PASSWORD" && exit 1; fi
 	@echo $(REGISTRY_PASSWORD) | docker login -u $(REGISTRY_USER) --password-stdin $(REGISTRY_ADDR)
 
 build:
@@ -24,7 +25,7 @@ retag: build
 	docker tag $(PDNS_IMAGE_NAME):$(PDNS_VERSION)-$(PDNS_REVISION) $(PDNS_IMAGE_NAME):latest
 	docker tag $(PDNS_ADMIN_IMAGE_NAME):$(PDNS_ADMIN_VERSION)-$(PDNS_ADMIN_REVISION) $(PDNS_ADMIN_IMAGE_NAME):latest
 
-push: retag
+push: retag login
 	docker push $(PDNS_IMAGE_NAME):$(PDNS_VERSION)-$(PDNS_REVISION)
 	docker push $(PDNS_IMAGE_NAME):latest
 	docker push $(PDNS_ADMIN_IMAGE_NAME):$(PDNS_ADMIN_VERSION)-$(PDNS_ADMIN_REVISION)
