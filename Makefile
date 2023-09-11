@@ -11,6 +11,7 @@ PDNS_REVISION         ?= 2
 PDNS_ADMIN_REVISION   ?= 2
 PDNS_IMAGE_NAME       ?= $(REGISTRY_ADDR)/pdns
 PDNS_ADMIN_IMAGE_NAME ?= $(REGISTRY_ADDR)/pdns-admin
+KUBE_CONFIG           ?= ~/.kube/config
 
 all: push
 
@@ -33,6 +34,10 @@ push: retag login
 
 cleanup:
 	docker logout $(REGISTRY_ADDR)
+
+deploy:
+	helm upgrade --atomic -i --namespace powerdns --create-namespace --kubeconfig $(KUBE_CONFIG) powerdns helm/ -f helm/values_pdns.yaml
+	helm upgrade --atomic -i --namespace powerdns --create-namespace --kubeconfig $(KUBE_CONFIG) powerdns-admin helm/ -f helm/values_pdns_admin.yaml
 
 test-run.yml:
 

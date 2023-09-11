@@ -1,12 +1,22 @@
-replicaCount: 1
-
 image:
-  repository: ghcr.io/shipilovds/pdns
   pullPolicy: IfNotPresent
+  repository: ghcr.io/shipilovds/pdns
   tag: 4.8.1-2
 
-nameOverride: ""
-fullnameOverride: ""
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  hosts:
+    - host: ns01-api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: ns01-api-example-com
+      hosts:
+        - ns01-api.example.com
 
 envs: {}
 
@@ -48,30 +58,3 @@ service:
       targetPort: 8081
       protocol: TCP
       name: api
-
-ingress:
-  enabled: true
-  className: nginx
-  hosts:
-    - host: ns01-api.example.com
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-    - secretName: ns01-api-example-com
-      hosts:
-        - ns01-api.example.com
-
-resources:
-  limits:
-    cpu: 300m
-    memory: 256Mi
-  requests:
-    cpu: 100m
-    memory: 128Mi
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}

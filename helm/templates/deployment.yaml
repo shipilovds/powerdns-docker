@@ -31,7 +31,7 @@ spec:
             {{- toYaml .Values.probes.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- if gt (len .Values.envs) 0 -}}
+          {{- if gt (len .Values.envs) 0 }}
           envFrom:
             - configMapRef:
                 name: {{ include "powerdns.fullname" . }}

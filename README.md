@@ -24,6 +24,7 @@ PDNS_IMAGE_NAME       - PowerDNS docker image name
 PDNS_ADMIN_IMAGE_NAME - PowerDNS-Admin docker image name
 PDNS_REVISION         - PowerDNS image revision
 PDNS_ADMIN_REVISION   - PowerDNS-Admin image revision
+KUBE_CONFIG           - K8S kubeconfig file path
 ```
 
 ## Test run
@@ -36,6 +37,14 @@ then `docker-compose -f test-run.yml up -d`
 
 > NOTE: you can use `init.sql` as the example of postgres init script for your deployments
 > `test-run.yml` might be used for the same purposes
+
+## Helm
+
+You can run `make deploy` or execute commands manually. See [Makefile](Makefile) for more info.
+
+> You must set `envs` for values files before!
+
+> Do not forget to edit ingress fqdn!
 
 ## Configure services
 
