@@ -11,10 +11,6 @@ spec:
       {{- include "powerdns.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.service.annotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
         {{- include "powerdns.selectorLabels" . | nindent 8 }}
     spec:

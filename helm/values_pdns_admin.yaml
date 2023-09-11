@@ -9,14 +9,15 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
   hosts:
-    - host: ns01.example.com
+    - host: ns01-admin.example.com
       paths:
         - path: /
           pathType: Prefix
+          servicePort: 80
   tls:
-    - secretName: ns01-example-com
+    - secretName: ns01-admin-example-com
       hosts:
-        - ns01.example.com
+        - ns01-admin.example.com
 
 envs: {}
 

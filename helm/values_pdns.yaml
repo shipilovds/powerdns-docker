@@ -13,6 +13,7 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
+          servicePort: 80
   tls:
     - secretName: ns01-api-example-com
       hosts:
@@ -41,10 +42,8 @@ probes:
       path: /
       port: api
 
-service:
-  type: ClusterIP
-  annotations:
-    prometheus.io/scrape: 'true'
+service_53:
+  type: LoadBalancer
   ports:
     - port: 53
       targetPort: 5053
@@ -54,6 +53,14 @@ service:
       targetPort: 5053
       protocol: UDP
       name: dns-udp
+
+service:
+  type: ClusterIP
+  # annotations:
+  #   prometheus.io/scrape: 'true'
+  #   prometheus.io/path: '/metrics'
+  #   prometheus.io/port: '80'
+  ports:
     - port: 80
       targetPort: 8081
       protocol: TCP
